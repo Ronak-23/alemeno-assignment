@@ -1,0 +1,49 @@
+<!-- templates/upload.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Urine Strip Color Analysis</title>
+</head>
+<body>
+    <h1>Urine Strip Color Analysis</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="image" accept="image/*">
+        <button type="submit">Upload Image</button>
+    </form>
+    <div id="result"></div>
+    <!-- show image here centered and scaled to fit -->
+    <p id ="image-caption"></p>
+    <img id="uploaded-image" style="display: none; max-width: 20%; max-height: 20%;">
+    
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const image = document.getElementById('uploaded-image');
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Loading result...'
+            // image caption
+            const caption = document.getElementById('image-caption');
+            caption.innerHTML = 'Uploaded Image';
+            const file = document.querySelector('input[type=file]').files[0];
+            image.src = URL.createObjectURL(file);
+            image.style.display = 'block';
+            image.onload = function() {
+                URL.revokeObjectURL(image.src) // free memory
+            }
+
+            const formData = new FormData(this);
+            fetch('/urine-strip/upload/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = JSON.stringify(data, null, 2);
+            });
+        });
+    </script>
+</body>
+</html>
